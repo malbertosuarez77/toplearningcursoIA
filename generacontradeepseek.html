@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Contraseñas Seguras</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Animación suave para la fortaleza de la contraseña */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.5s ease-in-out; }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-blue-200 to-purple-200 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-md w-full">
+    <h1 class="text-3xl font-bold text-purple-600 mb-6">Generador de Contraseñas</h1>
+
+    <!-- Longitud de la contraseña -->
+    <div class="mb-6">
+      <label for="length" class="block text-gray-700 text-lg mb-2">Longitud:</label>
+      <input
+        type="number"
+        id="length"
+        min="4"
+        max="50"
+        value="12"
+        class="w-full p-2 border-2 border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 text-center text-lg"
+      />
+    </div>
+
+    <!-- Opciones de personalización -->
+    <div class="mb-6">
+      <p class="text-gray-700 text-lg mb-2">Opciones:</p>
+      <div class="flex flex-col space-y-2">
+        <label class="inline-flex items-center">
+          <input type="checkbox" id="uppercase" checked class="form-checkbox h-5 w-5 text-purple-600">
+          <span class="ml-2 text-gray-700">Incluir mayúsculas (A-Z)</span>
+        </label>
+        <label class="inline-flex items-center">
+          <input type="checkbox" id="lowercase" checked class="form-checkbox h-5 w-5 text-purple-600">
+          <span class="ml-2 text-gray-700">Incluir minúsculas (a-z)</span>
+        </label>
+        <label class="inline-flex items-center">
+          <input type="checkbox" id="numbers" checked class="form-checkbox h-5 w-5 text-purple-600">
+          <span class="ml-2 text-gray-700">Incluir números (0-9)</span>
+        </label>
+        <label class="inline-flex items-center">
+          <input type="checkbox" id="symbols" checked class="form-checkbox h-5 w-5 text-purple-600">
+          <span class="ml-2 text-gray-700">Incluir símbolos (!@#$%^&*)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Botón para generar contraseña -->
+    <button
+      id="generateButton"
+      class="w-full bg-purple-500 text-white py-3 rounded-lg hover:bg-purple-600 transition-colors text-xl mb-6"
+    >
+      Generar Contraseña
+    </button>
+
+    <!-- Contraseña generada -->
+    <div class="mb-6">
+      <label for="password" class="block text-gray-700 text-lg mb-2">Contraseña:</label>
+      <input
+        type="text"
+        id="password"
+        readonly
+        class="w-full p-2 border-2 border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 text-center text-lg font-mono"
+      />
+    </div>
+
+    <!-- Fortaleza de la contraseña -->
+    <div id="strength" class="text-lg font-semibold mb-6 fade-in"></div>
+
+    <!-- Botón para copiar al portapapeles -->
+    <button
+      id="copyButton"
+      class="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 transition-colors"
+    >
+      Copiar Contraseña
+    </button>
+  </div>
+
+  <script>
+    // Caracteres disponibles para la contraseña
+    const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+    const numberChars = "0123456789";
+    const symbolChars = "!@#$%^&*";
+
+    // Función para generar una contraseña aleatoria
+    function generatePassword(length, useUppercase, useLowercase, useNumbers, useSymbols) {
+      let chars = "";
+      if (useUppercase) chars += uppercaseChars;
+      if (useLowercase) chars += lowercaseChars;
+      if (useNumbers) chars += numberChars;
+      if (useSymbols) chars += symbolChars;
+
+      let password = "";
+      for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * chars.length);
+        password += chars[randomIndex];
+      }
+      return password;
+    }
+
+    // Función para evaluar la fortaleza de la contraseña
+    function evaluateStrength(password) {
+      const length = password.length;
+      const hasUppercase = /[A-Z]/.test(password);
+      const hasLowercase = /[a-z]/.test(password);
+      const hasNumbers = /[0-9]/.test(password);
+      const hasSymbols = /[!@#$%^&*]/.test(password);
+
+      let strength = 0;
+      if (length >= 12) strength += 2;
+      if (hasUppercase) strength += 1;
+      if (hasLowercase) strength += 1;
+      if (hasNumbers) strength += 1;
+      if (hasSymbols) strength += 1;
+
+      if (strength >= 5) return { text: "Muy Fuerte", color: "text-green-600" };
+      if (strength >= 3) return { text: "Fuerte", color: "text-yellow-600" };
+      return { text: "Débil", color: "text-red-600" };
+    }
+
+    // Función para copiar al portapapeles
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("¡Contraseña copiada al portapapeles!");
+      });
+    }
+
+    // Inicializar la aplicación
+    document.addEventListener('DOMContentLoaded', () => {
+      const generateButton = document.getElementById('generateButton');
+      const copyButton = document.getElementById('copyButton');
+      const passwordInput = document.getElementById('password');
+      const strengthElement = document.getElementById('strength');
+
+      // Generar contraseña al hacer clic en el botón
+      generateButton.addEventListener('click', () => {
+        const length = parseInt(document.getElementById('length').value, 10);
+        const useUppercase = document.getElementById('uppercase').checked;
+        const useLowercase = document.getElementById('lowercase').checked;
+        const useNumbers = document.getElementById('numbers').checked;
+        const useSymbols = document.getElementById('symbols').checked;
+
+        const password = generatePassword(length, useUppercase, useLowercase, useNumbers, useSymbols);
+        passwordInput.value = password;
+
+        // Evaluar y mostrar la fortaleza
+        const strength = evaluateStrength(password);
+        strengthElement.textContent = `Fortaleza: ${strength.text}`;
+        strengthElement.className = `text-lg font-semibold mb-6 fade-in ${strength.color}`;
+      });
+
+      // Copiar contraseña al portapapeles
+      copyButton.addEventListener('click', () => {
+        if (passwordInput.value) {
+          copyToClipboard(passwordInput.value);
+        } else {
+          alert("Primero genera una contraseña.");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

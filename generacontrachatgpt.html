@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Contraseñas Seguras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-purple-400 to-blue-500 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-96 text-center">
+        <h1 class="text-3xl font-bold text-gray-700 mb-4">🔐 Generador de Contraseñas</h1>
+        
+        <div class="mb-4">
+            <span class="text-gray-700">Longitud: <span id="lengthValue">12</span></span>
+            <input id="length" type="range" min="4" max="32" value="12" class="w-full mt-2" oninput="updateLengthValue()">
+        </div>
+
+        <div class="mb-4 text-left">
+            <label class="flex items-center mb-2">
+                <input id="uppercase" type="checkbox" checked class="mr-2"> Incluir mayúsculas
+            </label>
+            <label class="flex items-center mb-2">
+                <input id="lowercase" type="checkbox" checked class="mr-2"> Incluir minúsculas
+            </label>
+            <label class="flex items-center mb-2">
+                <input id="numbers" type="checkbox" checked class="mr-2"> Incluir números
+            </label>
+            <label class="flex items-center">
+                <input id="symbols" type="checkbox" checked class="mr-2"> Incluir símbolos
+            </label>
+        </div>
+
+        <button onclick="generatePassword()" class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-full shadow-md hover:bg-blue-700 transition">🔄 Generar Contraseña</button>
+        
+        <div class="mt-4">
+            <input id="password" type="text" readonly class="w-full p-3 border rounded-lg text-center text-xl font-semibold bg-gray-100" placeholder="Tu contraseña aquí">
+            <button onclick="copyToClipboard()" class="mt-3 bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition">📋 Copiar</button>
+        </div>
+        
+        <p id="strength" class="mt-3 text-sm font-bold"></p>
+    </div>
+
+    <script>
+        function updateLengthValue() {
+            document.getElementById('lengthValue').textContent = document.getElementById('length').value;
+        }
+
+        function generatePassword() {
+            const length = document.getElementById('length').value;
+            const includeUppercase = document.getElementById('uppercase').checked;
+            const includeLowercase = document.getElementById('lowercase').checked;
+            const includeNumbers = document.getElementById('numbers').checked;
+            const includeSymbols = document.getElementById('symbols').checked;
+            
+            const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
+            const numberChars = '0123456789';
+            const symbolChars = '!@#$%^&*()_+[]{}|;:,.<>?/';
+            
+            let allowedChars = '';
+            if (includeUppercase) allowedChars += uppercaseChars;
+            if (includeLowercase) allowedChars += lowercaseChars;
+            if (includeNumbers) allowedChars += numberChars;
+            if (includeSymbols) allowedChars += symbolChars;
+            
+            if (allowedChars.length === 0) {
+                alert('Seleccione al menos una opción de caracteres');
+                return;
+            }
+            
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * allowedChars.length);
+                password += allowedChars[randomIndex];
+            }
+            
+            document.getElementById('password').value = password;
+            evaluateStrength(password);
+        }
+        
+        function evaluateStrength(password) {
+            let strengthText = '';
+            let strengthColor = '';
+            
+            if (password.length < 6) {
+                strengthText = 'Muy débil';
+                strengthColor = 'text-red-500';
+            } else if (password.length < 10) {
+                strengthText = 'Débil';
+                strengthColor = 'text-orange-500';
+            } else if (password.length < 14) {
+                strengthText = 'Fuerte';
+                strengthColor = 'text-green-500';
+            } else {
+                strengthText = 'Muy fuerte';
+                strengthColor = 'text-blue-500';
+            }
+            
+            const strengthElement = document.getElementById('strength');
+            strengthElement.textContent = `Fortaleza: ${strengthText}`;
+            strengthElement.className = `mt-3 text-sm font-bold ${strengthColor}`;
+        }
+        
+        function copyToClipboard() {
+            const passwordField = document.getElementById('password');
+            passwordField.select();
+            document.execCommand('copy');
+            alert('Contraseña copiada al portapapeles');
+        }
+    </script>
+</body>
+</html>

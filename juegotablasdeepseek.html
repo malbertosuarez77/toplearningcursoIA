@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Aprende a Multiplicar!</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Animaciones suaves */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .fade-in { animation: fadeIn 0.5s ease-in-out; }
+    .bounce { animation: bounce 0.5s ease-in-out; }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-pink-200 to-purple-200 min-h-screen flex items-center justify-center p-4">
+  <div id="app" class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-md w-full">
+    <!-- Pantalla de inicio para solicitar el nombre -->
+    <div id="startScreen">
+      <img src="https://img.icons8.com/color/96/000000/math.png" alt="Matemáticas divertidas" class="mx-auto mb-4 bounce">
+      <h1 class="text-4xl font-bold text-purple-600 mb-6">¡Aprende a Multiplicar!</h1>
+      <input
+        id="playerName"
+        type="text"
+        placeholder="¿Cómo te llamas?"
+        class="w-full p-3 border-2 border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 text-center text-xl"
+      />
+      <button
+        id="startButton"
+        class="mt-4 w-full bg-purple-500 text-white py-3 rounded-lg hover:bg-purple-600 transition-colors text-xl"
+      >
+        ¡Comenzar!
+      </button>
+    </div>
+
+    <!-- Pantalla del juego -->
+    <div id="gameScreen" class="hidden">
+      <img src="https://img.icons8.com/color/96/000000/math.png" alt="Matemáticas divertidas" class="mx-auto mb-4 bounce">
+      <h1 class="text-4xl font-bold text-purple-600 mb-6">¡Hola, <span id="playerNameDisplay"></span>!</h1>
+      <p class="text-gray-700 mb-4">Resuelve la siguiente multiplicación:</p>
+      <div id="exercise" class="text-5xl font-bold text-purple-600 mb-6 fade-in">?</div>
+      <input
+        id="answer"
+        type="number"
+        placeholder="Tu respuesta"
+        class="w-full p-3 border-2 border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 text-center text-xl"
+      />
+      <button
+        id="checkButton"
+        class="mt-4 w-full bg-purple-500 text-white py-3 rounded-lg hover:bg-purple-600 transition-colors text-xl"
+      >
+        Comprobar
+      </button>
+      <div id="feedback" class="mt-6 text-xl font-semibold fade-in"></div>
+      <div class="mt-6 flex justify-between text-lg">
+        <p>Aciertos: <span id="correctCount" class="font-bold text-green-600">0</span></p>
+        <p>Errores: <span id="wrongCount" class="font-bold text-red-600">0</span></p>
+      </div>
+      <button
+        id="resetButton"
+        class="mt-6 w-full bg-pink-400 text-white py-2 rounded-lg hover:bg-pink-500 transition-colors"
+      >
+        Reiniciar
+      </button>
+    </div>
+  </div>
+
+  <!-- Sonidos -->
+  <audio id="correctSound" src="https://assets.mixkit.co/active_storage/sfx/2217/2217-preview.mp3"></audio>
+  <audio id="wrongSound" src="https://assets.mixkit.co/active_storage/sfx/1087/1087-preview.mp3"></audio>
+
+  <!-- Música de fondo clásica -->
+  <audio id="backgroundMusic" loop>
+    <source src="https://www.mfiles.co.uk/mp3-downloads/beethoven-fur-elise-piano.mp3" type="audio/mpeg">
+    Tu navegador no soporta la reproducción de audio.
+  </audio>
+
+  <script>
+    // Variables globales
+    let correctCount = 0;
+    let wrongCount = 0;
+    let currentExercise = null;
+    let playerName = "";
+    let attempts = 0;
+
+    // Generar una multiplicación aleatoria
+    function generateExercise() {
+      const num1 = Math.floor(Math.random() * 9) + 1;
+      const num2 = Math.floor(Math.random() * 9) + 1;
+      return { num1, num2, result: num1 * num2 };
+    }
+
+    // Mostrar la multiplicación en pantalla
+    function displayExercise(exercise) {
+      document.getElementById('exercise').textContent = `${exercise.num1} x ${exercise.num2}`;
+    }
+
+    // Validar la respuesta del usuario
+    function checkAnswer() {
+      const userAnswer = parseInt(document.getElementById('answer').value, 10);
+      const feedbackElement = document.getElementById('feedback');
+      feedbackElement.classList.remove('text-green-600', 'text-red-600');
+
+      if (userAnswer === currentExercise.result) {
+        feedbackElement.textContent = `¡Correcto, ${playerName}! ¡Eres un genio! 🎉`;
+        feedbackElement.classList.add('text-green-600');
+        document.getElementById('correctSound').play(); // Sonido divertido de acierto
+        correctCount++;
+        attempts = 0; // Reiniciar intentos
+        currentExercise = generateExercise(); // Generar nuevo ejercicio
+        displayExercise(currentExercise);
+      } else {
+        attempts++;
+        if (attempts < 3) {
+          feedbackElement.textContent = `¡Oops, ${playerName}! Inténtalo de nuevo. 💪`;
+          feedbackElement.classList.add('text-red-600');
+          document.getElementById('wrongSound').play(); // Sonido chistoso de error
+        } else {
+          feedbackElement.textContent = `La respuesta correcta era ${currentExercise.result}. ¡Sigue practicando, ${playerName}! 💪`;
+          feedbackElement.classList.add('text-red-600');
+          wrongCount++;
+          attempts = 0; // Reiniciar intentos
+          currentExercise = generateExercise(); // Generar nuevo ejercicio
+          displayExercise(currentExercise);
+        }
+      }
+
+      // Actualizar puntuación
+      document.getElementById('correctCount').textContent = correctCount;
+      document.getElementById('wrongCount').textContent = wrongCount;
+
+      // Limpiar el campo de respuesta
+      document.getElementById('answer').value = '';
+    }
+
+    // Reiniciar la partida
+    function resetGame() {
+      correctCount = 0;
+      wrongCount = 0;
+      attempts = 0;
+      document.getElementById('correctCount').textContent = 0;
+      document.getElementById('wrongCount').textContent = 0;
+      document.getElementById('feedback').textContent = '';
+      currentExercise = generateExercise();
+      displayExercise(currentExercise);
+    }
+
+    // Inicializar la aplicación
+    document.addEventListener('DOMContentLoaded', () => {
+      const startScreen = document.getElementById('startScreen');
+      const gameScreen = document.getElementById('gameScreen');
+      const startButton = document.getElementById('startButton');
+      const checkButton = document.getElementById('checkButton');
+      const resetButton = document.getElementById('resetButton');
+      const backgroundMusic = document.getElementById('backgroundMusic');
+
+      // Mostrar pantalla de inicio
+      startScreen.classList.remove('hidden');
+      gameScreen.classList.add('hidden');
+
+      // Comenzar el juego
+      startButton.addEventListener('click', () => {
+        playerName = document.getElementById('playerName').value.trim();
+        if (playerName) {
+          document.getElementById('playerNameDisplay').textContent = playerName;
+          startScreen.classList.add('hidden');
+          gameScreen.classList.remove('hidden');
+          resetGame();
+          backgroundMusic.play(); // Reproducir música de fondo
+        } else {
+          alert("¡Por favor, ingresa tu nombre!");
+        }
+      });
+
+      // Validar respuesta
+      checkButton.addEventListener('click', checkAnswer);
+
+      // Reiniciar partida
+      resetButton.addEventListener('click', resetGame);
+    });
+  </script>
+</body>
+</html>
